@@ -1,0 +1,14 @@
+# compiled binaries
+a.out
+*.o
+*.out
+sol
+cf_run
+/tmp/
+# bare-named binaries left by ad-hoc `g++ -o main ...` (does NOT match main.cpp)
+main
+problems/*/main
+
+# editor / OS
+.vscode/*.log
+.DS_Store
