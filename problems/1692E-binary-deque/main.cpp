@@ -1,5 +1,5 @@
-// # 6C — alice-bob-and-chocolate
-// https://codeforces.com/problemset/problem/6/C
+// # 1692E — binary-deque
+// https://codeforces.com/problemset/problem/1692/E
 //
 // Workflow:
 //   - paste the problem's sample cases into tests/1.in, tests/1.out, ...
@@ -42,31 +42,43 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    int n; cin >> n;
+    int n, s; cin >> n >> s;
     vector<int> a(n);
-    rep(i, 0, n) cin >> a[i];
-    int aliceCnt = 0;
-    int aliceT = 0;
-    int bobCnt = 0;
-    int bobT = 0;
-    int j = n - 1;
-    int i = 0;
-
-    for (i = 0; i < j; i++) {
-        aliceCnt++;
-        aliceT += a[i];
-
-
-        while (j > i && bobT + a[j] <= aliceT) {
-            bobT += a[j];
-            bobCnt++;
-            j--;
-        }
+    int sum = 0;
+    rep(i, 0, n) {
+        cin >> a[i];
+        sum += a[i];
     }
-    if (i == j) bobT < aliceT ? bobCnt++ : aliceCnt++;
 
-    cout << aliceCnt << " " << bobCnt << "\n";
-    
+    if (sum < s) {
+        cout << "-1\n";
+        return;
+    }
+
+    if (sum == s) {
+        cout << "0\n";
+        return;
+    }
+
+
+    int l = 0;
+    int r = 0; 
+    int curSum = 0;
+    int bestRemovesCnt = 1000000;
+    while(r < n) {
+        curSum += a[r];
+        while(curSum > s && l < r) {
+            curSum -= a[l];
+            l++;
+        }
+        if (curSum == s) {
+            bestRemovesCnt = min(bestRemovesCnt, l + (n - 1 - r));
+        } 
+        
+        r++;
+    }
+
+    cout << bestRemovesCnt << "\n";
 }
 
 int main() {
@@ -74,7 +86,7 @@ int main() {
     cin.tie(nullptr);
 
     int t = 1;
-    // cin >> t;   // <-- uncomment for "t test cases" problems
+    cin >> t;   // <-- uncomment for "t test cases" problems
     while (t--) solve();
     return 0;
 }

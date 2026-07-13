@@ -1,5 +1,5 @@
-// # 6C — alice-bob-and-chocolate
-// https://codeforces.com/problemset/problem/6/C
+// # 1133C — balanced-team
+// https://codeforces.com/problemset/problem/1133/C
 //
 // Workflow:
 //   - paste the problem's sample cases into tests/1.in, tests/1.out, ...
@@ -45,28 +45,17 @@ void solve() {
     int n; cin >> n;
     vector<int> a(n);
     rep(i, 0, n) cin >> a[i];
-    int aliceCnt = 0;
-    int aliceT = 0;
-    int bobCnt = 0;
-    int bobT = 0;
-    int j = n - 1;
-    int i = 0;
-
-    for (i = 0; i < j; i++) {
-        aliceCnt++;
-        aliceT += a[i];
-
-
-        while (j > i && bobT + a[j] <= aliceT) {
-            bobT += a[j];
-            bobCnt++;
-            j--;
-        }
-    }
-    if (i == j) bobT < aliceT ? bobCnt++ : aliceCnt++;
-
-    cout << aliceCnt << " " << bobCnt << "\n";
+    sort(all(a));
     
+    int l = 0;
+    int bestCnt = 1;
+
+    rep(r, 0, n) {
+        while (a[r] - a[l] > 5) l++;
+        bestCnt = max(bestCnt, r - l + 1);
+    }
+
+    cout << bestCnt << "\n";
 }
 
 int main() {

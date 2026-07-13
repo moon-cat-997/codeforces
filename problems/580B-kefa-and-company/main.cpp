@@ -1,5 +1,5 @@
-// # 6C — alice-bob-and-chocolate
-// https://codeforces.com/problemset/problem/6/C
+// # 580B — kefa-and-company
+// https://codeforces.com/problemset/problem/580/B
 //
 // Workflow:
 //   - paste the problem's sample cases into tests/1.in, tests/1.out, ...
@@ -42,31 +42,7 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    int n; cin >> n;
-    vector<int> a(n);
-    rep(i, 0, n) cin >> a[i];
-    int aliceCnt = 0;
-    int aliceT = 0;
-    int bobCnt = 0;
-    int bobT = 0;
-    int j = n - 1;
-    int i = 0;
-
-    for (i = 0; i < j; i++) {
-        aliceCnt++;
-        aliceT += a[i];
-
-
-        while (j > i && bobT + a[j] <= aliceT) {
-            bobT += a[j];
-            bobCnt++;
-            j--;
-        }
-    }
-    if (i == j) bobT < aliceT ? bobCnt++ : aliceCnt++;
-
-    cout << aliceCnt << " " << bobCnt << "\n";
-    
+    // Read input from cin, write the answer to cout.
 }
 
 int main() {

@@ -125,3 +125,32 @@ but more surface area. Prefer the canonical form that needs neither.)
   *decrease* the sum), the "shrink until valid" logic breaks — that's a prefix-sum +
   other-structure problem, not a sliding window.
 - Seen in: **279B Books** — longest run of consecutive books with total time ≤ t.
+
+### Exact-target windows (`sum == s`): record AFTER shrinking
+
+When hunting windows with an *exact* aggregate (not `≤ t`), keep the same three
+beats but put the equality check after the shrink:
+
+```cpp
+sum += a[right];                 // 1. extend
+while (sum > s) { sum -= a[left]; left++; }  // 2. shrink while OVER the target
+if (sum == s) record();          // 3. only now test for equality
+```
+
+Checking *before* the shrink misses every window that becomes `== s` mid-shrink.
+On 0/1 arrays the check-first order happens to survive: an overshoot is exactly
+`s+1`, so the same window minus its last element had sum exactly `s`, ended one
+step earlier, is at least as long — and was already checked (every missed window
+is *dominated*). That proof dies with general values:
+
+```
+a = [2, 3], s = 3   → check-first records nothing; shrink reaches sum==3 too late.
+```
+
+Shrink-then-check needs no data-shape proof. Prefer it.
+
+- **Sentinel discipline:** initialize `best` with something that *fails loudly*
+  (`INT_MAX`, then check it before printing), not a magic `1000000` that prints as
+  a plausible-looking wrong answer if no window is ever found.
+- Seen in: **1692E Binary Deque** — min removals from both ends ⇔ max-length window
+  with `sum == s`; removals = `l + (n-1-r)` = `n - windowLen`.
