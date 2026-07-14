@@ -4,14 +4,14 @@ Living record of what's been solved, by subject, and what's next. **Consult this
 start of a session to pick the next problem; update it whenever a problem is accepted or
 scaffolded.** Companion to `ROADMAP.md` (the plan) and `NOTES.md` (missed-idea log).
 
-_Last updated: 2026-07-11_
+_Last updated: 2026-07-14_
 
 ## Snapshot
 
-- **Solved:** 19
-- **Comfortable band:** 800–1000 (solid); 1100–1400 cleared (158B, 546B, 4B, 279B, 6C)
-- **Current focus:** two pointers / sliding window (roadmap topic #4) — cementing by shape: max-window ✓ (279B), converging ✓ (6C); now min-window (1354B → 701C), optionally sort-then-window (580B)
-- **In progress:** `1354B` Ternary String (1200, min-window — scaffolded, skipped for now; user jumped to Ladder A). Next ladder item: `1133C` Balanced Team.
+- **Solved:** 20
+- **Comfortable band:** 800–1000 (solid); 1100–1400 cleared (158B, 546B, 4B, 279B, 6C, 1133C)
+- **Current focus:** two pointers / sliding window (roadmap topic #4) — cementing by shape: max-window ✓ (279B), converging ✓ (6C), sort-then-window ✓ (1133C); now min-window (1354B → 701C)
+- **In progress:** `1354B` Ternary String (1200, min-window — scaffolded, skipped for now; user jumped to Ladder A). Next ladder item: `489B` BerSU Ball.
 - **Queued:** two full ladders scaffolded with official samples — see "Scaffolded ladders" below. Order: finish 1354B → two-pointers ladder → binary-search ladder.
 - **Open / not solved:** none
 
@@ -24,7 +24,7 @@ Ordered by the `ROADMAP.md` topic sequence. "Reps" = problems solved touching th
 | 1 | Implementation / simulation | strong | 71A, 231A, 158A, 282A, 427A |
 | 2 | Math & number theory basics | good | 4A (parity), 50A (`n*m/2`), 263A (Manhattan dist), 1A (ceil div + `long long`) |
 | 3 | Greedy | good | 158B (bucket-by-count), 546B (sort-then-sweep), 4B (feasibility + distribute-slack) |
-| 4 | Two pointers / sliding window | good | 279B (variable-size sliding window — grow/shrink/record; canonical form is `for end / while shrink`), 6C (converging pointers from both ends — advance the side with the smaller accumulated total) |
+| 4 | Two pointers / sliding window | good | 279B (variable-size sliding window — grow/shrink/record; canonical form is `for end / while shrink`), 6C (converging pointers from both ends — advance the side with the smaller accumulated total), 1133C (sort-then-window — largest window with bounded spread `a[r]-a[l] ≤ 5`) |
 | 5 | Binary search (on the answer) | not started | — |
 | 6 | Prefix sums / difference arrays | not started | — |
 | 7 | Sorting + events | partial | 339A (sort) |
@@ -34,7 +34,7 @@ Ordered by the `ROADMAP.md` topic sequence. "Reps" = problems solved touching th
 
 Cross-cutting tools already exercised: `sort`, `set`/`unordered_set` (469A), `map`/`unordered_map`
 (4C), running-length scan (580A), running-balance counter (427A), string parsing (282A, 339A),
-grid coordinates (263A).4 / 1 1 1 100
+grid coordinates (263A).
 
 ## Solved log
 
@@ -42,6 +42,7 @@ Newest first. "Key idea" = the insight or tool the problem taught.
 
 | Date | Problem | Rating | Subject | Key idea |
 |------|---------|--------|---------|----------|
+| 2026-07-14 | 1133C Balanced Team | 1200 | two pointers (sort + window) | sort skills, then slide a window keeping `a[r]-a[l] ≤ 5`; left pointer only ever advances (monotonic) → O(n) after the sort. Edge-verified beyond samples: spread=5 keeps / spread=6 drops, disjoint clusters, n=1 |
 | 2026-07-12 | 1692E Binary Deque | 1200 | two pointers (window) | removing from both ends ⇔ keeping a contiguous window → minimize `l + (n-1-r)` over windows with sum == s. Solved with check-BEFORE-shrink order — correct here only because 0/1 elements make every missed window dominated by an equal-length earlier one; on general values that order breaks (`[2,3], s=3` → sentinel `1000000` printed). Canonical: extend → shrink → check (see CHEATSHEET). Stress-verified vs brute + independent binary-search ref |
 | 2026-07-11 | 6C Alice, Bob and Chocolate | 1200 | two pointers (converging) | bar `m` goes to whoever *reaches* it first: Alice iff `prefixSum(m) <= suffixSum(m+1)` (tie → Alice). Loop exits two ways: pointers cross (no leftover) or `i==j` (one contested middle bar). AC on 3rd try — the `i==j` branch was guessed, not derived; `n&1` (try 2) fails both directions: `[5,1,1]` odd-n-no-leftover, `[1,1,1,100]` even-n-with-leftover. Stress-verified vs. time-simulation reference (3000 small + 200 large + edges) |
 | 2026-07-06 | 279B Books | 1400 | two pointers / sliding window | max-length window with sum ≤ t; grow right, shrink left when over, record best; both pointers forward → O(n). Solved with extend-OR-shrink form + reset guard (correct); canonical `for end / while shrink` needs no guard. int safe only because a_i ≤ 1e4 |
@@ -73,7 +74,7 @@ multi-test `t` line before coding.
 | # | Problem | Rating | Flavor |
 |---|---------|--------|--------|
 | 1 | ✅ 1692E Binary Deque | 1200 | array + target sum — solved 2026-07-12 |
-| 2 | 1133C Balanced Team | 1200 | pick a subset, bounded spread |
+| 2 | ✅ 1133C Balanced Team | 1200 | pick a subset, bounded spread — solved 2026-07-14 |
 | 3 | 489B BerSU Ball | 1200 | two sequences, matching |
 | 4 | 600B Queries about less or equal elements | 1300 | two sorted arrays |
 | 5 | 1324D Pair of Topics | 1400 | counting pairs |

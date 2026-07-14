@@ -36,7 +36,13 @@ fi
 if [[ -t 1 ]]; then RED=$'\e[31m'; GRN=$'\e[32m'; YEL=$'\e[33m'; DIM=$'\e[2m'; RST=$'\e[0m'
 else RED=; GRN=; YEL=; DIM=; RST=; fi
 
-CXX=${CXX:-g++}
+# Default to the newest Homebrew GNU g++ (real libstdc++ + <bits/stdc++.h>,
+# matching Codeforces). Falls back to plain g++ if none is installed.
+# Override by exporting CXX yourself.
+if [[ -z "${CXX:-}" ]]; then
+    CXX=$(ls /opt/homebrew/bin/g++-* /usr/local/bin/g++-* 2>/dev/null | sort -V | tail -1)
+    CXX=${CXX:-g++}
+fi
 FLAGS=(-std=gnu++23 -O2 -Wall -Wextra -DLOCAL)
 BIN="$(mktemp -d)/sol"
 

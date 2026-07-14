@@ -5,6 +5,8 @@ a.out
 sol
 cf_run
 /tmp/
+# ...but DO track sample expected-output fixtures (they're test data, not binaries)
+!problems/*/tests/*.out
 # bare-named binaries left by ad-hoc `g++ -o main ...` (does NOT match main.cpp)
 main
 problems/*/main
