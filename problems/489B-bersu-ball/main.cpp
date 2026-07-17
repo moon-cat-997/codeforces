@@ -43,26 +43,27 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 
 void solve() {
     int n; cin >> n;
-    vector<int> a(n); 
-    rep(i, 0, n) cin >> a[i];
-
+    vector<int> a(n); rep(i, 0, n) cin >> a[i];
     int m; cin >> m;
-    vector<int> b(m);
-    rep(i, 0, m) cin >> b[i];
-
+    vector<int> b(m); rep(i, 0, m) cin >> b[i];
     sort(all(a));
     sort(all(b));
 
-    int pairsCnt = 0;
-    int j = 0;
-    rep(i, 0, n) {
-        while (j < m && a[i] - b[j] > 1) j++;
-        if (j < m) {
-            pairsCnt++;
+    int pairCnt = 0;
+    int i = 0;
+    rep(j, 0, m) {
+        
+        while (i < n && b[j] - a[i] > 1) i++;
+        if (i >= n) break;
+        if (abs(b[j] - a[i]) <= 1) {
+            pairCnt++;
+            i++;
         }
     }
 
-    cout << pairsCnt << "\n";
+    cout << pairCnt << "\n";
+
+    
 }
 
 int main() {
