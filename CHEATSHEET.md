@@ -227,6 +227,41 @@ growing the array to the next prime and redistributing — a *rehash* — as it 
 **One-line summary:** hash map = array + `hash(key) % size` to pick the slot + a
 linked list per slot for ties. Fast exactly as long as the slots stay balanced.
 
+### Why the bucket count is prime
+
+Real keys are rarely uniform — they come in arithmetic progressions (evens,
+multiples of 10, aligned sizes, timestamps stepping by 60). The relevant fact:
+
+> Keys `a, a+s, a+2s, …` (stride `s`) taken `% m` hit exactly **`m / gcd(s, m)`**
+> distinct buckets.
+
+A shared factor between stride and bucket count wastes buckets. Multiples of 4:
+
+| bucket count | slots for 4, 8, 12, 16, 20, … | buckets used |
+|---|---|---|
+| m = 8 (composite) | `4, 0, 4, 0, 4, …` | **2 of 8** — gcd(4,8)=4 |
+| m = 7 (prime) | `4, 1, 5, 2, 6, 3, 0, …` | **all 7** — gcd(4,7)=1 |
+
+(Powers of two are worst: `k % 2^b` = "keep the low b bits" — high bits never
+influence the slot at all.)
+
+A prime `p` has no divisors, so `gcd(s, p) = 1` for *every* stride except
+multiples of `p` itself — any progression cycles through all `p` buckets. Since
+the library can't know the keys' structure in advance, prime is the one modulus
+that neutralizes every stride at once — hence the hardcoded prime rehash table.
+
+**Design trade-off, not a law:** Java/Rust instead use power-of-two buckets
+(`k & (m-1)` is cheaper than `%`) but *must* pre-scramble the hash so no
+structure survives. Either the modulus mixes (prime, GCC) or the hash does
+(scrambler, Java/Rust). GCC's sin below isn't the prime — it's pairing a
+*known* prime sequence with zero scrambling.
+
+**Bridge to the attack:** the prime defends against every stride except one —
+multiples of `p` itself, where coverage collapses to `p/p = 1` bucket. Accidental
+input never marches in steps of exactly 172933; an adversary who read the prime
+table does it on purpose. Prime beats *accidental* structure; the salted hash
+below beats *adversarial* structure.
+
 ### The failure mode
 
 All keys in **one** bucket ⇒ the array stops helping, every op scans the full list
