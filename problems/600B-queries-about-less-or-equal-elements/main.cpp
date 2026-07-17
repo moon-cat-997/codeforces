@@ -42,7 +42,31 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n; cin >> n;
+    int m; cin >> m;
+    vector<int> a(n); rep(i, 0, n) cin >> a[i];
+    vector<pair<int, int>> b(m);
+    rep(i, 0, m) {
+        cin >> b[i].first;
+        b[i].second = i;
+    };
+
+    sort(all(a));
+    sort(all(b));
+    vector<int> ans(m);
+    int i = 0;
+    rep(j, 0, m) {
+        while(i < n && a[i] <= b[j].first) i++;
+        ans[b[j].second] = i;
+    }
+
+    rep(i, 0, m) {
+        cout << ans[i] << " ";
+    }
+    
+    cout << "\n";
+
+    
 }
 
 int main() {
