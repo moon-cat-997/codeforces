@@ -154,3 +154,133 @@ Shrink-then-check needs no data-shape proof. Prefer it.
   a plausible-looking wrong answer if no window is ever found.
 - Seen in: **1692E Binary Deque** — min removals from both ends ⇔ max-length window
   with `sum == s`; removals = `l + (n-1-r)` = `n - windowLen`.
+
+---
+
+## `pair` sorts by first element (lexicographic) — the offline-queries idiom
+
+**Fact:** `pair<A,B>` compares **lexicographically**: by `.first`, and only on a tie
+by `.second`. So `sort(all(v))` on a `vector<pair<int,int>>` orders by first
+component, ties broken by second. (Same for `tuple` — element by element, left to
+right.)
+
+**Why:** `pair::operator<` is defined as
+`a.first < b.first || (!(b.first < a.first) && a.second < b.second)` — exactly
+dictionary order. No custom comparator needed when "sort by value" is what you want.
+
+### The pattern this enables: answer queries offline via `{value, original_index}`
+
+Sorting destroys input order, but you must *print* in input order. Instead of
+remembering answers by value (map lookup), let each query carry its position through
+the sort, and deliver each answer straight to its home slot:
+
+```cpp
+vector<pair<int,int>> q(m);          // {value, original index}
+rep(i, 0, m) { cin >> q[i].first; q[i].second = i; }
+sort(all(q));                        // by value; the index tags ride along
+
+vector<int> ans(m);
+int i = 0;
+rep(j, 0, m) {                       // sweep in sorted order — pointer never resets
+    while (i < n && a[i] <= q[j].first) i++;
+    ans[q[j].second] = i;            // write directly to the original slot
+}
+rep(k, 0, m) cout << ans[k] << " ";  // already in input order
+```
+
+Three beats: **tag → sort → deliver.** Works for every "process queries in a
+convenient order, answer in input order" problem; needs no hashing and no luck
+(a value→answer map only works when equal values share an answer — this always works).
+
+### ⚠️ Caveats
+
+- Lexicographic ties fall through to `.second` — usually harmless (equal values,
+  either order fine), but if tie order *matters*, that's your tiebreak for free.
+- Sorting by the **second** element needs a custom comparator or a swapped pair.
+- Seen in: **600B** — offline sweep over sorted queries; also the general skeleton
+  for "print ranks in input order."
+
+---
+
+## `unordered_map` is hackable — sorted/`map` by default, salted hash if needed
+
+### How a hash table works under the hood
+
+Arrays give O(1) lookup (`arr[key]` is one jump) but only for small keys. A hash
+table keeps the array-jump trick with a *small* array by **computing** each key's
+slot: it owns an array of **buckets**, and key `k` lives in
+`bucket[hash(k) % bucket_count]`. Keys that land in the same slot (a **collision**)
+are chained in a little linked list hanging off that bucket:
+
+```
+7 buckets; GCC's hash(int) is the identity, so slot = k % 7.
+insert 10, 22, 8, 40:      10%7=3   22%7=1   8%7=1 (collision!)   40%7=5
+
+bucket:  [0]   [1]       [2]   [3]   [4]   [5]   [6]
+          ·    22 → 8     ·    10     ·    40     ·
+```
+
+Every operation = one array jump + walk that one bucket's list comparing real keys.
+Keys spread evenly ⇒ lists of length ~1 ⇒ O(1). (The map preserves the spread by
+growing the array to the next prime and redistributing — a *rehash* — as it fills.)
+
+**One-line summary:** hash map = array + `hash(key) % size` to pick the slot + a
+linked list per slot for ties. Fast exactly as long as the slots stay balanced.
+
+### The failure mode
+
+All keys in **one** bucket ⇒ the array stops helping, every op scans the full list
+⇒ inserting the k-th key walks the k−1 before it ⇒ n inserts cost 1+2+…+n =
+**O(n²)**. For n = 2·10⁵ that's 4·10¹⁰ ops — TLE, not "slow."
+
+```
+feed it multiples of 7:  7, 14, 21, 28, …  → every k % 7 == 0
+
+bucket:  [0]                       [1] [2] [3] [4] [5] [6]
+          7 → 14 → 21 → 28 → …      ·   ·   ·   ·   ·   ·
+```
+
+**Why an adversary can force it on Codeforces (GCC/libstdc++):**
+
+1. `std::hash<int>` is the **identity** — `hash(x) == x`. No mixing.
+2. Bucket counts come from a **fixed, published prime sequence** (107, 211, …,
+   126271, 172933, …) — deterministic given the map's size.
+
+So a hacker picks the prime `p` your map ends up using and feeds you multiples of
+`p`: every key has `hash(k) % p == 0` → one bucket → O(n²). Legal test (values fit
+in 10⁹), same code, 1000× slower. Routine in Div.2/3 hack phases and Educational
+12-hour open hacking.
+
+### Defenses, in order of preference
+
+1. **Sorted arrays / offline sweep / `map`** — no hash to attack; `map` is a
+   red-black tree with *guaranteed* O(log n) on any input.
+2. **If O(1) is truly needed, salt + mix the hash:**
+
+```cpp
+struct custom_hash {
+    static uint64_t splitmix64(uint64_t x) {
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+    size_t operator()(uint64_t x) const {
+        static const uint64_t FIXED_RANDOM =
+            chrono::steady_clock::now().time_since_epoch().count();
+        return splitmix64(x + FIXED_RANDOM);
+    }
+};
+unordered_map<int, int, custom_hash> mm;
+```
+
+`splitmix64` destroys the multiples-of-p structure; `FIXED_RANDOM` (clock at
+runtime) means the hash doesn't exist until the program starts — unpredictable
+even with your source in hand.
+
+**Meta-lesson:** "fast on average" is worthless against adversarial input — the same
+reason naive quicksort and fixed-seed `rand()` get hacked. Worst-case-guaranteed
+tools (sorting, `map`, binary search) are hack-proof by construction.
+
+- Seen in: **600B** review — `unordered_map<int,int>` keyed on raw input values was
+  the textbook target; the pair-sweep above removed it.
