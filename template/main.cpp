@@ -3,8 +3,11 @@
 //
 // Workflow:
 //   - paste the problem's sample cases into tests/1.in, tests/1.out, ...
-//   - run:  ./scripts/test.sh <slug>       (compile + check against all samples)
-//   - debug with dbg(...) — printed to stderr locally, compiled out on Codeforces.
+//   - check:  ./scripts/test.sh <slug>       (compile + check against all samples)
+//   - print:  dbg(...) — goes to stderr locally, compiled out on Codeforces.
+//   - debug:  ./scripts/debug.sh <slug>      (ASan+UBSan+_GLIBCXX_DEBUG on tests/1.in;
+//             pinpoints out-of-bounds / overflow / UB with a file:line)
+//             ./scripts/debug.sh <slug> --gdb (step through, stopped at solve())
 
 #include <bits/stdc++.h>
 using namespace std;
