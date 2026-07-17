@@ -10,6 +10,8 @@ cf_run
 # bare-named binaries left by ad-hoc `g++ -o main ...` (does NOT match main.cpp)
 main
 problems/*/main
+# macOS debug-symbol bundles from `g++ -g` builds
+*.dSYM/
 
 # editor / OS
 .vscode/*.log

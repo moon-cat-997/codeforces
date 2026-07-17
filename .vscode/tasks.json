@@ -3,9 +3,12 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ build active file",
-            "command": "/usr/bin/g++",
+            "command": "/opt/homebrew/bin/g++-16",
             "args": [
                 "-fdiagnostics-color=always",
+                "-std=gnu++23",
+                "-O2",
+                "-DLOCAL",
                 "-g",
                 "${file}",
                 "-o",
