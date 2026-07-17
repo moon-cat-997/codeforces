@@ -6,13 +6,15 @@
 #   make debug P=4A-watermelon        # sanitizer run on tests/1.in (catches UB / OOB)
 #   make debug P=4A-watermelon N=2    # ...on tests/2.in
 #   make gdb P=4A-watermelon          # step through in gdb, stopped at solve()
+#   make fmt P=4A-watermelon          # clang-format that solution in place
+#   make fmt                          # clang-format every problem + template
 
 # Newest GNU g++ (Homebrew on macOS, versioned or plain on Linux; real libstdc++
 # + <bits/stdc++.h>, matching Codeforces). Override with `make run CXX=...`.
 CXX := $(shell ls /opt/homebrew/bin/g++-* /usr/local/bin/g++-* /usr/bin/g++-* 2>/dev/null | sort -V | tail -1)
 CXX := $(or $(CXX),g++)
 
-.PHONY: new test run debug gdb
+.PHONY: new test run debug gdb fmt
 
 new:
 	@./scripts/new.sh $(ID) $(T)
@@ -28,3 +30,6 @@ debug:
 
 gdb:
 	@./scripts/debug.sh $(P) --gdb $(N)
+
+fmt:
+	@./scripts/fmt.sh $(P)

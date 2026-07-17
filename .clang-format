@@ -1,0 +1,47 @@
+# clang-format config for this competitive-programming workspace.
+# Goal: attach braces (int main() {), 4-space indent, and DON'T fight the dense
+# one-line style CP code uses. clang-format is already installed (clang pkg).
+#
+#   clang-format -i problems/<slug>/main.cpp     # format in place
+#   VS Code: format-on-save is wired in .vscode/settings.json
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Braces on the same line: `int main() {`  /  `void solve() {`
+BreakBeforeBraces: Attach
+
+# No hard wrap — keep `int n; cin >> n;` and packed rep(...) lines intact.
+ColumnLimit: 0
+
+# `const T& x`, `int* p` — glue &/* to the type.
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Keep `template <class T> void f()` on one line (don't break after the <...>).
+AlwaysBreakTemplateDeclarations: No
+
+# Preserve compact one-liners already used in the template.
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Always
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowAllArgumentsOnNextLine: true
+
+# Keep the aligned #define column in the template header.
+AlignConsecutiveMacros: Consecutive
+
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: None
+IndentCaseLabels: true
+FixNamespaceComments: false
+
+# Never reorder CP includes (usually just <bits/stdc++.h>, but be safe).
+SortIncludes: Never
