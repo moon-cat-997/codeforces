@@ -126,6 +126,52 @@ but more surface area. Prefer the canonical form that needs neither.)
   other-structure problem, not a sliding window.
 - Seen in: **279B Books** — longest run of consecutive books with total time ≤ t.
 
+### The mirrored orientation — anchor the LEFT edge instead
+
+The canonical form iterates the **right** edge and shrinks the **left**. The mirror
+image iterates the **left** edge and grows the **right** — same window, same O(n),
+both pointers still forward-only:
+
+```cpp
+int j = 0;                                  // right edge, never resets
+long long cur = 0, best = 0;
+rep(i, 0, n) {                              // i = LEFT edge
+    while (j < n && valid(i, j)) {          // grow right while the window stays legal
+        cur += a[j].second;
+        best = max(best, cur);
+        j++;
+    }
+    cur -= a[i].second;                     // retire the left edge — exactly once
+}
+```
+
+**Why no shrink-*loop* is needed:** the left edge advances exactly once per outer
+iteration, so a single subtraction replaces the canonical `while`-shrink. That's what
+makes this orientation read simpler on "for each left edge, how far right can I reach?"
+problems.
+
+**⚠️ The catch — recording inside the growth loop.** Updating `best` on every
+extension (rather than once per outer step) is only safe when **validity is
+prefix-closed**: every prefix of a valid window is itself valid, so you can never
+record a state you haven't finished validating. Non-negative values give you this for
+free (a longer window is never worse). If values can be negative, or the predicate
+isn't prefix-closed, move the `best` update out of the `while` — this is the same trap
+as 1692E's check-before-shrink, which survived on 0/1 data by coincidence and died on
+`[2,3], s=3`.
+
+**Pick the orientation by what the problem asks:** right-anchored (canonical) for a
+single global best; left-anchored when you need a per-left-edge answer ("for each `i`,
+the farthest valid `j`").
+
+- Seen in: **580B Kefa and Company** — sort by money, maximize summed friendship over a
+  run with money spread `< d`. Verified equivalent to the canonical orientation at
+  n=10⁵.
+- **Watch for dead guards.** 580B carried `if (j < i) j = i;` to stop `j` falling behind
+  `i` — but `d ≥ 1` means the window always contains element `i`, so `j` always ends at
+  `i+1` or beyond. Unreachable. A defensive line standing in for an unproven invariant
+  is a smell (same species as 1324D's boundary patches): prove it and delete it, or
+  discover the constraint that actually makes it live (here, `d = 0`).
+
 ### Exact-target windows (`sum == s`): record AFTER shrinking
 
 When hunting windows with an *exact* aggregate (not `≤ t`), keep the same three

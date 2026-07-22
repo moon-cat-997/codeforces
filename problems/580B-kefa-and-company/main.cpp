@@ -42,7 +42,33 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n; cin >> n;
+    int d; cin >> d;
+    vector <pair<int, int>> a(n);
+    rep(i, 0, n) {
+        int m, s;
+        cin >> m >> s;
+        a[i] = make_pair(m, s);
+    }
+
+    sort(all(a));
+    int j = 0;
+    long long curSum = 0;
+    long long bestSum = 0;
+
+    rep(i, 0, n) {
+        if (j < i) j = i;
+
+        while (j < n && a[j].first - a[i].first < d) {
+            curSum += a[j].second;
+            bestSum = max(bestSum, curSum);
+            j++;
+        }
+
+        curSum -= a[i].second;
+    }
+
+    cout << bestSum << "\n";
 }
 
 int main() {
