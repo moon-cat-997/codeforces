@@ -157,6 +157,166 @@ Shrink-then-check needs no data-shape proof. Prefer it.
 
 ---
 
+## What "greedy" actually means — and how to tell it from lookalikes
+
+**Definition:** a greedy algorithm builds a solution incrementally, and at each step
+commits **irrevocably** to whichever of **several genuinely available options** looks
+best by a **purely local rule** — never revisiting that commitment.
+
+All four ingredients are required:
+
+| Ingredient | Meaning |
+|---|---|
+| Incremental | Solution assembled piece by piece, not computed at once. |
+| **Genuine choice** | ≥2 options are *legal* at the step; both lead to a valid final answer. |
+| Local rule | The pick uses only current state, not downstream consequences. |
+| Irrevocable | No backtracking, no memo of alternatives. |
+
+**The defining risk:** the locally-best option may not belong to *any* globally-best
+solution. Greedy is a **bet** that it does — and the bet is frequently wrong.
+
+### Why the bet is real — the canonical failure
+
+Coin change, minimize coins:
+
+- `{1, 5, 10, 25}`, make 30 → greedy: 25 + 5 = **2 coins**. Optimal ✅
+- `{1, 3, 4}`, make 6 → greedy: 4 + 1 + 1 = **3 coins**. Optimal is 3 + 3 = **2** ❌
+
+Same code, correct on one coin set and wrong on the other. **Nothing in the loop shape
+tells you which case you're in** — correctness lives in the *problem's structure*. That
+is why greedy demands a proof and other incremental algorithms don't.
+
+### The discriminator
+
+> At a step: **could I have chosen differently and still produced a valid answer?**
+
+- **Yes** → greedy. Navigating a space of feasible solutions. Owe an **exchange
+  argument** (transform any optimal solution into greedy's without worsening it) or a
+  brute-force stress test. *Assume wrong until shown otherwise.*
+- **No — the branch is a fact about the data** → not greedy. Counting (1324D), binary
+  search, mergesort's merge, sliding-window shrink. Owe a **partition/invariant check**
+  instead (nothing double-counted, nothing missed).
+
+Beware the lookalikes: incremental + invariant + no-backtracking is a *genus*, not
+greedy. Binary search, merge, Euclid's algorithm and sliding window all share the shape.
+
+### Applied to this repo's solved log
+
+| Problem | Choice at each step | Greedy? |
+|---|---|---|
+| 489B BerSU Ball | pair the two, or skip one — both legal, one yields a bigger matching | ✅ |
+| 158B Taxi | which groups share a taxi — many legal packings, differing taxi counts | ✅ |
+| 546B Badges | which excess fills which slot — many legal assignments, differing cost | ✅ |
+| 4B Before an Exam | where to pour slack — many legal schedules, **all equally good** | greedy-for-*feasibility*: choice but no objective ⇒ bet is trivially safe |
+| 1324D Pair of Topics | none — `c[lo]+c[hi] > 0` is true or false | ❌ counting |
+| 279B Books | none — shrinking is *forced* to restore validity | ❌ invariant |
+
+Choice **plus an objective to optimize** is where greedy gets dangerous. Choice alone
+(4B) is harmless.
+
+### When greedy tends to work vs. fail
+
+- **Works** when sorting reveals an order that makes the choice effectively forced, and
+  swapping any two decisions can't improve the result — that *is* the exchange argument.
+- **Fails** when choices interact: picking A silently constrains B. 0/1 knapsack by
+  value-density is the classic — looks obviously right, is wrong, needs DP.
+
+---
+
+## Counting pairs with `sum > threshold` — converging two pointers on a sorted array
+
+**Use when:** you need to count (not list) pairs `i < j` from an array where some
+combined value crosses a threshold — e.g. `a_i + a_j > 0`. Turns an O(n²) pair scan
+into O(n log n) (dominated by the sort).
+
+**First, reduce two-array conditions to one array.** A condition like
+`a_i + a_j > b_i + b_j` is **per-topic** — sorting `a` and `b` independently breaks
+the pairing, since `a[i]` and `b[i]` no longer refer to the same original element.
+Rearrange algebraically first: `a_i + a_j > b_i + b_j` ⟺ `(a_i - b_i) + (a_j - b_j) > 0`.
+Define `c_i = a_i - b_i` once, per index, *before* sorting — now it's a single-array
+problem: count pairs with `c_i + c_j > 0`.
+
+### The canonical form — converge from both ends
+
+```cpp
+sort(all(c));
+int lo = 0, hi = n - 1;
+long long ans = 0;
+while (lo < hi) {
+    if (c[lo] + c[hi] > 0) { ans += hi - lo; hi--; }  // hi pairs with EVERY k in [lo, hi)
+    else lo++;                                         // c[lo] too small to save with anyone left
+}
+```
+
+### Why it's correct and O(n)
+
+Array is sorted ascending. Fix `hi`: if `c[lo] + c[hi] > 0`, then for every index `k`
+with `lo ≤ k < hi`, `c[k] ≥ c[lo]` (sorted), so `c[k] + c[hi] ≥ c[lo] + c[hi] > 0` too.
+That's `hi - lo` valid pairs `(lo,hi), (lo+1,hi), …, (hi-1,hi)` counted in one shot —
+every partner `hi` could still have — so `hi` has nothing left to check; retire it
+(`hi--`). If `c[lo] + c[hi] ≤ 0`, `hi` is `lo`'s *best available* partner (largest
+value left) and it still isn't enough, so no remaining partner will save `lo` either
+— retire `lo` (`lo++`) without counting anything, no pair lost. Each iteration
+retires exactly one of `lo`/`hi` and never revisits it, so the loop runs ≤ n times
+total.
+
+Trace on `c = [-3, -1, 0, 2, 4]` (brute force: 6 valid pairs):
+
+| lo | hi | c[lo]+c[hi] | action |
+|---|---|---|---|
+| 0 | 4 | 1 | >0 → `ans += 4` (pairs `(-3,4),(-1,4),(0,4),(2,4)`), `hi--` |
+| 0 | 3 | -1 | ≤0 → `lo++` |
+| 1 | 3 | 1 | >0 → `ans += 2` (pairs `(-1,2),(0,2)`), `hi--` |
+| 1 | 2 | -1 | ≤0 → `lo++` |
+| 2 | 2 | — | `lo == hi`, stop |
+
+Total `4 + 2 = 6`. ✅
+
+### This is counting, not greedy — and the difference sets your proof obligation
+
+It *feels* greedy (incremental, eliminate one element per step, maintain an invariant,
+never backtrack), but that shape is shared by binary search, mergesort's merge, and
+Euclid's algorithm — none of which are greedy either. The discriminator:
+
+> At a step, take the **other** branch. Is the result *feasible but worse*, or *wrong*?
+
+- **Greedy** (489B): "pair these two" vs "skip one" is a genuine **choice**; the other
+  option yields a valid-but-worse matching. Greedy bets that local optimum ⇒ global
+  optimum — a bet that is **frequently wrong**, hence exchange arguments.
+- **Here:** `c[lo]+c[hi] > 0` is a **fact about the data**, not a decision — exactly one
+  branch is true. The other branch doesn't give a worse answer, it gives a wrong count.
+  There is no solution space to be suboptimal within; there's one correct number.
+
+**Reframe:** this is brute force with bulk counting. The O(n²) double loop counts valid
+pairs one at a time; this counts them `hi - lo` at a time. Same enumeration, same pairs,
+different batching — sorting just lets you recognize whole blocks of the double loop at
+once. Nothing is skipped, nothing is chosen. (A greedy genuinely *discards* candidate
+solutions it never examines.)
+
+| Technique | What you must prove before trusting it |
+|---|---|
+| Greedy | Exchange argument, or heavy stress-testing. **Assume wrong until shown otherwise.** |
+| Exhaustive counting (this) | The partition: no pair double-counted, no pair missed. |
+
+Careful: editorials often say "greedy" loosely for any *sort-then-advance-pointers* rule.
+Fine as shorthand — but classify by the proof obligation, not the loop shape.
+
+### ⚠️ Caveats
+
+- **Don't sort the original arrays separately** — reduce to one array first (see
+  above). This is the mistake to check for first when a "two arrays, per-index
+  condition" problem isn't yielding to two pointers.
+- A single drifting pointer (track one index, nudge it forward/backward with
+  boundary-guard corrections each outer step) can also work and stay amortized
+  O(n) — the true threshold index is monotonic in the outer loop variable — but
+  it's much harder to *prove* correct by inspection than the converging-ends form.
+  Prefer converging ends; reach for the drifting-pointer variant only if you can
+  re-derive why it's bounded.
+- Seen in: **1324D Pair of Topics** — stress-verified vs brute force (small n) and
+  vs this canonical form (n=2·10⁵, several adversarial patterns).
+
+---
+
 ## `pair` sorts by first element (lexicographic) — the offline-queries idiom
 
 **Fact:** `pair<A,B>` compares **lexicographically**: by `.first`, and only on a tie

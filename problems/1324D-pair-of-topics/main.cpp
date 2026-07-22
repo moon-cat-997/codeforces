@@ -9,31 +9,42 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll  = long long;
+using ll = long long;
 using ull = unsigned long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 template <class T> using vec = vector<T>;
 
-#define all(x)    (x).begin(), (x).end()
-#define rall(x)   (x).rbegin(), (x).rend()
-#define sz(x)     ((int)(x).size())
+#define all(x)       (x).begin(), (x).end()
+#define rall(x)      (x).rbegin(), (x).rend()
+#define sz(x)        ((int)(x).size())
 #define rep(i, a, b) for (int i = (a); i < (b); ++i)
 
 // ---- debug: active only when compiled with -DLOCAL (test.sh does this) ----
 #ifdef LOCAL
 template <class T> void _print(const T& x) { cerr << x; }
 template <class A, class B> void _print(const pair<A, B>& p) {
-    cerr << '('; _print(p.first); cerr << ", "; _print(p.second); cerr << ')';
+    cerr << '(';
+    _print(p.first);
+    cerr << ", ";
+    _print(p.second);
+    cerr << ')';
 }
 template <class T> void _print(const vector<T>& v) {
-    cerr << '['; bool f = true;
-    for (const auto& e : v) { if (!f) cerr << ", "; f = false; _print(e); }
+    cerr << '[';
+    bool f = true;
+    for (const auto& e : v) {
+        if (!f) cerr << ", ";
+        f = false;
+        _print(e);
+    }
     cerr << ']';
 }
 void _dbg() { cerr << '\n'; }
 template <class T, class... R> void _dbg(const T& x, const R&... r) {
-    _print(x); if (sizeof...(r)) cerr << ", "; _dbg(r...);
+    _print(x);
+    if (sizeof...(r)) cerr << ", ";
+    _dbg(r...);
 }
 #define dbg(...) cerr << "[" << #__VA_ARGS__ << "] = ", _dbg(__VA_ARGS__)
 #else
@@ -42,7 +53,30 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    long long n;
+    cin >> n;
+    vector<long long> a(n);
+    rep(i, 0, n) cin >> a[i];
+    rep(i, 0, n) {
+        long long b;
+        cin >> b;
+        a[i] -= b;
+    }
+
+    sort(all(a));
+    long long ans = 0;
+    long long lo = 0;
+    long long hi = n - 1;
+    while (lo < hi) {
+        if (a[lo] + a[hi] > 0) {
+            ans += hi - lo;
+            hi--;
+        } else {
+            lo++;
+        }
+    }
+
+    cout << ans << "\n";
 }
 
 int main() {

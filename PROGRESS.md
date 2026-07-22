@@ -4,14 +4,14 @@ Living record of what's been solved, by subject, and what's next. **Consult this
 start of a session to pick the next problem; update it whenever a problem is accepted or
 scaffolded.** Companion to `ROADMAP.md` (the plan) and `NOTES.md` (missed-idea log).
 
-_Last updated: 2026-07-18_
+_Last updated: 2026-07-22_
 
 ## Snapshot
 
-- **Solved:** 22
-- **Comfortable band:** 800–1000 (solid); 1100–1400 cleared (158B, 546B, 4B, 279B, 6C, 1133C, 489B, 600B)
-- **Current focus:** two pointers / sliding window (roadmap topic #4) — cementing by shape: max-window ✓ (279B), converging ✓ (6C), sort-then-window ✓ (1133C), two-sequence matching ✓ (489B), offline sorted queries ✓ (600B); now min-window (1354B → 701C)
-- **In progress:** `1354B` Ternary String (1200, min-window — scaffolded, skipped for now; user jumped to Ladder A). Next ladder item: `1324D` Pair of Topics.
+- **Solved:** 23
+- **Comfortable band:** 800–1000 (solid); 1100–1400 cleared (158B, 546B, 4B, 279B, 6C, 1133C, 489B, 600B, 1324D)
+- **Current focus:** two pointers / sliding window (roadmap topic #4) — cementing by shape: max-window ✓ (279B), converging ✓ (6C), sort-then-window ✓ (1133C), two-sequence matching ✓ (489B), offline sorted queries ✓ (600B), counting pairs by sum threshold ✓ (1324D); now min-window (1354B → 701C)
+- **In progress:** `1354B` Ternary String (1200, min-window — scaffolded, skipped for now; user jumped to Ladder A). Next ladder item: `1955D` Inaccurate Subsequence Search.
 - **Queued:** two full ladders scaffolded with official samples — see "Scaffolded ladders" below. Order: finish 1354B → two-pointers ladder → binary-search ladder.
 - **Open / not solved:** none
 
@@ -24,7 +24,7 @@ Ordered by the `ROADMAP.md` topic sequence. "Reps" = problems solved touching th
 | 1 | Implementation / simulation | strong | 71A, 231A, 158A, 282A, 427A |
 | 2 | Math & number theory basics | good | 4A (parity), 50A (`n*m/2`), 263A (Manhattan dist), 1A (ceil div + `long long`) |
 | 3 | Greedy | good | 158B (bucket-by-count), 546B (sort-then-sweep), 4B (feasibility + distribute-slack) |
-| 4 | Two pointers / sliding window | good | 279B (variable-size sliding window — grow/shrink/record; canonical form is `for end / while shrink`), 6C (converging pointers from both ends — advance the side with the smaller accumulated total), 1133C (sort-then-window — largest window with bounded spread `a[r]-a[l] ≤ 5`), 489B (two sorted sequences, greedy matching — one pointer per array, advance the smaller side) |
+| 4 | Two pointers / sliding window | good | 279B (variable-size sliding window — grow/shrink/record; canonical form is `for end / while shrink`), 6C (converging pointers from both ends — advance the side with the smaller accumulated total), 1133C (sort-then-window — largest window with bounded spread `a[r]-a[l] ≤ 5`), 489B (two sorted sequences, greedy matching — one pointer per array, advance the smaller side), 600B (offline sorted queries), 1324D (reduce two-array condition to one array via `c_i = a_i - b_i`, then count pairs with `c_i+c_j > 0`) |
 | 5 | Binary search (on the answer) | not started | — |
 | 6 | Prefix sums / difference arrays | not started | — |
 | 7 | Sorting + events | partial | 339A (sort) |
@@ -42,6 +42,7 @@ Newest first. "Key idea" = the insight or tool the problem taught.
 
 | Date | Problem | Rating | Subject | Key idea |
 |------|---------|--------|---------|----------|
+| 2026-07-22 | 1324D Pair of Topics | 1400 | two pointers (counting pairs) | condition `a_i+a_j > b_i+b_j` is **per-topic** ⇒ sorting `a`/`b` separately breaks the pairing — reduce per-index to one array `c_i = a_i - b_i` *before* sorting, then count pairs with `c_i+c_j > 0` by converging from both ends: `>0` ⇒ `hi` pairs with all of `[lo,hi)`, bulk-count `hi-lo` and retire `hi`; `≤0` ⇒ `lo`'s best partner failed so retire `lo`. First AC used a single drifting pointer + two boundary-guard patches (correct, amortized O(n), but hard to prove by inspection); **rewritten from understanding into the canonical 8-line form, no guards** — see CHEATSHEET. Not greedy: no choice is made, the branch is a fact about the data ⇒ proof obligation is a partition check, not an exchange argument. `ans` must be `ll` (max ≈ 2·10¹⁰). Both versions stress-verified vs brute (3000 small + 200 medium) and at n=2·10⁵ (random, all-equal, alternating-extreme, sorted/reverse-sorted; 15–41ms) |
 | 2026-07-18 | 600B Queries about less or equal | 1300 | two pointers (offline sorted queries) | answer per query = count of `a[i] ≤ v` = upper_bound index. Solved offline: sort a AND the queries, one monotone sweep (i never resets), map answers back to input order. Canonical online alternative: `upper_bound(all(a), v) - a.begin()` per query — same complexity, less machinery. Stress-verified vs upper_bound ref (negatives, dups, n=m=2·10⁵ in 0.09s) |
 | 2026-07-17 | 489B BerSU Ball | 1200 | two pointers (two-sequence matching) | sort both arrays; greedy "match the smallest compatible pair" is optimal — skip a-side while `b[j]-a[i] > 1` (too small), pair when `|diff| ≤ 1`, else skip b[j]. Stress-verified vs exact bitmask matching (3000 tiny + 500 medium + edges: chains, all-dups, max-n) |
 | 2026-07-14 | 1133C Balanced Team | 1200 | two pointers (sort + window) | sort skills, then slide a window keeping `a[r]-a[l] ≤ 5`; left pointer only ever advances (monotonic) → O(n) after the sort. Edge-verified beyond samples: spread=5 keeps / spread=6 drops, disjoint clusters, n=1 |
@@ -79,7 +80,7 @@ multi-test `t` line before coding.
 | 2 | ✅ 1133C Balanced Team | 1200 | pick a subset, bounded spread — solved 2026-07-14 |
 | 3 | ✅ 489B BerSU Ball | 1200 | two sequences, matching — solved 2026-07-17 |
 | 4 | ✅ 600B Queries about less or equal elements | 1300 | two sorted arrays — solved 2026-07-18 |
-| 5 | 1324D Pair of Topics | 1400 | counting pairs |
+| 5 | ✅ 1324D Pair of Topics | 1400 | counting pairs — solved 2026-07-22 |
 | 6 | 1955D Inaccurate Subsequence Search | 1400 | window + multiset of values |
 | 7 | 580B Kefa and Company | 1500 | window under a spread constraint |
 | 8 | 676C Vasya and String | 1500 | window with a change budget |
@@ -112,3 +113,6 @@ Multiplication Table (1800).
 - Special-judge / "output any valid answer" problems (4B): local exact-diff can false-fail on YES cases — validate output *validity* (constraints + sum), trust CF's checker.
 - `"\n"` not `endl`; exact output strings; test self-made edge cases beyond the given samples.
 - When a condition is a *guess* (6C's `i==j` vs `n&1`), construct a test that distinguishes the candidates before submitting — for 6C a 3-element hand trace (`[5,1,1]`) was enough to kill `n&1`.
+- **Classify the technique by its proof obligation, not its loop shape** (1324D): incremental + invariant + no-backtracking describes greedy, binary search, merge, *and* sliding window alike. The discriminator is whether a **genuine choice** exists — could you have decided differently and still gotten a valid answer? Yes ⇒ greedy, owe an exchange argument or stress test. No, the branch is a fact about the data ⇒ counting/invariant, owe a partition check. See CHEATSHEET "What greedy actually means".
+- On a sorted array, ask **"which element can I *completely finish* right now?"** rather than "how do I scan?" — the extremes are never ambiguous (`hi` pairs with everything left, or `lo` pairs with nothing left), which is what turns a drifting pointer with boundary patches into a clean converging loop (1324D).
+- A first AC is not the end of a problem: **re-deriving the clean form from understanding** (1324D, 14 lines + 2 guards → 8 lines + 0) is where the pattern actually gets learned.
