@@ -41,8 +41,40 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 #endif
 // ---------------------------------------------------------------------------
 
+bool match(unordered_map<int, int> b, unordered_map<int, int> c, int k) {
+    auto it = c.begin();
+    int ak = 0;
+    while (it != c.end() && ak < k) {
+        pair<int, int> e = *it;
+        if (b[e.first] != 0) ak += min(b[e.first], e.second);
+        it++;
+    }
+    return ak >= k;
+}
+
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n, m, k; cin >> n >> m >> k;
+    vector<int> a(n); rep(i, 0, n) cin >> a[i];
+    unordered_map<int, int> b;
+    unordered_map<int, int> c;
+    rep(i, 0, m) {
+        int x; cin >> x;
+        b[x] += 1;
+    }
+
+    int lo = 0;
+    int hi = 0;
+    int ans = 0;
+    while(hi < n) {
+        c[a[hi]]++;
+        if (hi - lo >= m) {
+            c[a[lo]]--;
+            lo++;
+        }
+        if (hi - lo + 1 == m && match(b, c, k)) ans++;
+        hi++;
+    } 
+    cout << ans << "\n";
 }
 
 int main() {
@@ -50,7 +82,7 @@ int main() {
     cin.tie(nullptr);
 
     int t = 1;
-    // cin >> t;   // <-- uncomment for "t test cases" problems
+    cin >> t;   // <-- uncomment for "t test cases" problems
     while (t--) solve();
     return 0;
 }
