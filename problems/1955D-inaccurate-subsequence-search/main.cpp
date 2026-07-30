@@ -9,31 +9,42 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll  = long long;
+using ll = long long;
 using ull = unsigned long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 template <class T> using vec = vector<T>;
 
-#define all(x)    (x).begin(), (x).end()
-#define rall(x)   (x).rbegin(), (x).rend()
-#define sz(x)     ((int)(x).size())
+#define all(x)       (x).begin(), (x).end()
+#define rall(x)      (x).rbegin(), (x).rend()
+#define sz(x)        ((int)(x).size())
 #define rep(i, a, b) for (int i = (a); i < (b); ++i)
 
 // ---- debug: active only when compiled with -DLOCAL (test.sh does this) ----
 #ifdef LOCAL
 template <class T> void _print(const T& x) { cerr << x; }
 template <class A, class B> void _print(const pair<A, B>& p) {
-    cerr << '('; _print(p.first); cerr << ", "; _print(p.second); cerr << ')';
+    cerr << '(';
+    _print(p.first);
+    cerr << ", ";
+    _print(p.second);
+    cerr << ')';
 }
 template <class T> void _print(const vector<T>& v) {
-    cerr << '['; bool f = true;
-    for (const auto& e : v) { if (!f) cerr << ", "; f = false; _print(e); }
+    cerr << '[';
+    bool f = true;
+    for (const auto& e : v) {
+        if (!f) cerr << ", ";
+        f = false;
+        _print(e);
+    }
     cerr << ']';
 }
 void _dbg() { cerr << '\n'; }
 template <class T, class... R> void _dbg(const T& x, const R&... r) {
-    _print(x); if (sizeof...(r)) cerr << ", "; _dbg(r...);
+    _print(x);
+    if (sizeof...(r)) cerr << ", ";
+    _dbg(r...);
 }
 #define dbg(...) cerr << "[" << #__VA_ARGS__ << "] = ", _dbg(__VA_ARGS__)
 #else
@@ -41,39 +52,41 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 #endif
 // ---------------------------------------------------------------------------
 
-bool match(unordered_map<int, int> b, unordered_map<int, int> c, int k) {
-    auto it = c.begin();
-    int ak = 0;
-    while (it != c.end() && ak < k) {
-        pair<int, int> e = *it;
-        if (b[e.first] != 0) ak += min(b[e.first], e.second);
-        it++;
-    }
-    return ak >= k;
-}
-
 void solve() {
-    int n, m, k; cin >> n >> m >> k;
-    vector<int> a(n); rep(i, 0, n) cin >> a[i];
+    int n, m, k;
+    cin >> n >> m >> k;
+    vector<int> a(n);
+    rep(i, 0, n) cin >> a[i];
     unordered_map<int, int> b;
     unordered_map<int, int> c;
     rep(i, 0, m) {
-        int x; cin >> x;
+        int x;
+        cin >> x;
         b[x] += 1;
     }
 
     int lo = 0;
     int hi = 0;
     int ans = 0;
-    while(hi < n) {
-        c[a[hi]]++;
+    int matchedCnt = 0;
+    while (hi < n) {
+        int bHiCnt = b[a[hi]];
+        if (bHiCnt) {
+            if (c[a[hi]]++ < bHiCnt) {
+                matchedCnt++;
+            }
+        }
+
         if (hi - lo >= m) {
-            c[a[lo]]--;
+            if (c[a[lo]]) {
+                int t = c[a[lo]]--;
+                if (t <= b[a[lo]]) matchedCnt--;
+            }
             lo++;
         }
-        if (hi - lo + 1 == m && match(b, c, k)) ans++;
+        if (hi - lo + 1 == m && matchedCnt >= k) ans++;
         hi++;
-    } 
+    }
     cout << ans << "\n";
 }
 
@@ -82,7 +95,7 @@ int main() {
     cin.tie(nullptr);
 
     int t = 1;
-    cin >> t;   // <-- uncomment for "t test cases" problems
+    cin >> t;  // <-- uncomment for "t test cases" problems
     while (t--) solve();
     return 0;
 }
