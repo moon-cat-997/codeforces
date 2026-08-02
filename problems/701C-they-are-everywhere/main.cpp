@@ -42,7 +42,25 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n, k; cin >> n >> k;
+    vec<int> a(n);
+    rep(i, 0, n) cin >> a[i];
+    map<int, int> u;
+    int uniqueCnt = 0;
+    int bestL = 0;
+    int bestR = 0;
+    int l = 0; 
+    rep(r, 0, n) {
+        u[a[r]]++;
+        if (u[a[r]] == 1) uniqueCnt++; 
+
+        while(u[a[l]] > 1) {
+            u[a[l]]--;
+            
+        }
+        u.si
+    }
+
 }
 
 int main() {
