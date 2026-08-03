@@ -201,6 +201,49 @@ Shrink-then-check needs no data-shape proof. Prefer it.
 - Seen in: **1692E Binary Deque** — min removals from both ends ⇔ max-length window
   with `sum == s`; removals = `l + (n-1-r)` = `n - windowLen`.
 
+### Minimum-length windows: the shrink means the opposite thing
+
+Max-window and min-window use the same three beats but the `while` does an **inverted
+job**, and getting this backwards is the standard first mistake.
+
+|  | max-window (`≤ t`) | min-window (cover a requirement) |
+|---|---|---|
+| A short window is… | always valid | usually **in**valid |
+| Growing the window… | can break validity | can only help |
+| The `while` does | **restore** validity | **tighten** a valid window |
+| Shrink test | `while (invalid)` | `while (still valid without a[left])` |
+| Record `best` | after the shrink | after the shrink (with a validity guard) |
+
+```cpp
+int lo = 0, curDistinct = 0, best = INT_MAX;
+map<char,int> cnt;
+rep(hi, 0, n) {
+    if (cnt[s[hi]]++ == 0) curDistinct++;          // 1. extend
+    while (cnt[s[lo]] > 1) { cnt[s[lo]]--; lo++; } // 2. tighten while the left edge is redundant
+    if (curDistinct == need)                       // 3. record only if the window covers
+        best = min(best, hi - lo + 1);
+}
+```
+
+**Why `cnt[s[lo]] > 1` is the right test:** that character appears somewhere else inside
+the window, so dropping the left copy cannot lose coverage — the window stays exactly as
+valid as it was. The loop stops the instant `lo` points at a character the window holds
+only once, which is precisely the shortest window ending at `hi`. Note `curDistinct` never
+needs decrementing: the shrink only ever removes duplicates.
+
+**Why the validity guard is separate:** unlike max-window (where the shrink *makes* the
+window valid, so recording unconditionally is safe), a min-window's tighten loop can't
+create coverage that isn't there. Before the first `hi` at which all requirements appear,
+the window is short *and wrong* — recording it would print a too-small answer.
+
+- Seen in: **701C They Are Everywhere** — shortest substring containing every distinct
+  character of `s`.
+- Same dead-guard smell as 580B: a `lo < hi` clause on the shrink test is unreachable
+  (a one-element window can't have `cnt > 1`).
+- Same sentinel discipline as above: initialize with `INT_MAX`, not a magic `100000`
+  that happens to equal max `n` — it prints as a plausible wrong answer instead of
+  failing loudly.
+
 ---
 
 ## What "greedy" actually means — and how to tell it from lookalikes
@@ -405,6 +448,53 @@ convenient order, answer in input order" problem; needs no hashing and no luck
 - Sorting by the **second** element needs a custom comparator or a swapped pair.
 - Seen in: **600B** — offline sweep over sorted queries; also the general skeleton
   for "print ranks in input order."
+
+---
+
+## Bounded values ⇒ index by the value (counting array), not `map`
+
+Before reaching for any keyed container, read the bound on the **values**, not just on
+`n`. If `0 ≤ a_i ≤ V` with `V` small enough to allocate, the value *is* the index:
+
+```cpp
+const int MAXV = 1'000'001;        // from the statement: 0 <= a_i <= 10^6
+vector<int> cnt(MAXV, 0);          // direct-address table
+++cnt[a[i]];                       // O(1), no hashing, no comparisons
+```
+
+### Why it wins
+
+| | `map<int,int>` | `vector<int> cnt(V+1)` |
+|---|---|---|
+| lookup | O(log n), 3–4 pointer chases | O(1), one indexed load |
+| bytes per live entry | ~40 (key, value, 3 pointers, colour bit) | 4 |
+| layout | nodes scattered across the heap → cache miss per access | one contiguous block → prefetcher-friendly |
+| adversarial input | safe (guaranteed O(log n)) | safe (no hash to attack) |
+
+It's the array-jump trick from the hash-table section below, minus the hash: you don't
+need to *compute* a slot when the key already **is** one.
+
+### The cost, and when not to do it
+
+The `V+1` ints are allocated and zero-filled once — 4 MB and ~1 ms for `V = 10⁶`,
+independent of `n`. That's a bad trade only when `V` is huge (10⁹ — won't fit), the keys
+aren't small non-negative integers (strings, 64-bit values, pairs), or `n` is so tiny the
+allocation dominates. For "unbounded values but few of them", **coordinate-compress
+first** (sort the distinct values, replace each by its rank) and then index by rank.
+
+### ⚠️ Caveats
+
+- Size it from the **statement's** bound, not from `max(a)` in the samples. `MAXV = V+1`,
+  and remember `a_i = 0` is usually legal — off-by-one here is an out-of-bounds write.
+- Don't use `cnt.size()` or a scan of `cnt` as "number of distinct in window" — that's
+  O(V) per query. Maintain a separate `distinct` counter incrementally, bumping it on the
+  `0 → 1` transition and dropping it on the `1 → 0` transition.
+- If you must reset between test cases in a multi-test problem, **don't** refill the whole
+  array per test (`t · V` work, guaranteed TLE) — undo only the entries you touched.
+
+- Seen in: **616D** — sliding window with a distinct-count cap, `a_i ≤ 10⁶`. The `map`
+  version was accepted at 0.29 s / 24 MB; the counting array measured 0.025 s / 4 MB on
+  identical inputs (~11×). Also **546B** — bucket by value because `1 ≤ a_i ≤ n`.
 
 ---
 

@@ -21,6 +21,7 @@ template <class T> using vec = vector<T>;
 #define all(x)    (x).begin(), (x).end()
 #define rall(x)   (x).rbegin(), (x).rend()
 #define sz(x)     ((int)(x).size())
+#define mp        make_pair
 #define rep(i, a, b) for (int i = (a); i < (b); ++i)
 
 // ---- debug: active only when compiled with -DLOCAL (test.sh does this) ----

@@ -9,31 +9,43 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll  = long long;
+using ll = long long;
 using ull = unsigned long long;
 using pii = pair<int, int>;
 using pll = pair<ll, ll>;
 template <class T> using vec = vector<T>;
 
-#define all(x)    (x).begin(), (x).end()
-#define rall(x)   (x).rbegin(), (x).rend()
-#define sz(x)     ((int)(x).size())
+#define all(x)       (x).begin(), (x).end()
+#define rall(x)      (x).rbegin(), (x).rend()
+#define sz(x)        ((int)(x).size())
 #define rep(i, a, b) for (int i = (a); i < (b); ++i)
+#define mp           make_pair
 
 // ---- debug: active only when compiled with -DLOCAL (test.sh does this) ----
 #ifdef LOCAL
 template <class T> void _print(const T& x) { cerr << x; }
 template <class A, class B> void _print(const pair<A, B>& p) {
-    cerr << '('; _print(p.first); cerr << ", "; _print(p.second); cerr << ')';
+    cerr << '(';
+    _print(p.first);
+    cerr << ", ";
+    _print(p.second);
+    cerr << ')';
 }
 template <class T> void _print(const vector<T>& v) {
-    cerr << '['; bool f = true;
-    for (const auto& e : v) { if (!f) cerr << ", "; f = false; _print(e); }
+    cerr << '[';
+    bool f = true;
+    for (const auto& e : v) {
+        if (!f) cerr << ", ";
+        f = false;
+        _print(e);
+    }
     cerr << ']';
 }
 void _dbg() { cerr << '\n'; }
 template <class T, class... R> void _dbg(const T& x, const R&... r) {
-    _print(x); if (sizeof...(r)) cerr << ", "; _dbg(r...);
+    _print(x);
+    if (sizeof...(r)) cerr << ", ";
+    _dbg(r...);
 }
 #define dbg(...) cerr << "[" << #__VA_ARGS__ << "] = ", _dbg(__VA_ARGS__)
 #else
@@ -42,7 +54,30 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n, k;
+    cin >> n >> k;
+    vec<int> a(n);
+    rep(i, 0, n) cin >> a[i];
+    int lo = 0;
+    pii best = mp(0, 0);
+    map<int, int> nmbCnt;
+
+    int curK = 0;
+    rep(hi, 0, n) {
+        int hiCnt = ++nmbCnt[a[hi]];
+        if (hiCnt == 1) curK++;
+        while (lo < hi && curK > k) {
+            int loCnt = --nmbCnt[a[lo]];
+            if (loCnt == 0) curK--;
+            lo++;
+        }
+
+        if (hi - lo > best.first - best.second) {
+            best = mp(hi, lo);
+        }
+    }
+
+    cout << best.second + 1 << " " << best.first + 1 << "\n";
 }
 
 int main() {

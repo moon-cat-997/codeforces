@@ -1,0 +1,23 @@
+root = true
+
+# C++ solutions use 4-space indentation (see template/main.cpp).
+[*.{cpp,h,hpp}]
+indent_style = space
+indent_size = 4
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Make requires literal tabs in recipe lines.
+[Makefile]
+indent_style = tab
+
+# Sample cases are fixture data — never reformat them.
+[*.{in,out}]
+trim_trailing_whitespace = false
+insert_final_newline = false
