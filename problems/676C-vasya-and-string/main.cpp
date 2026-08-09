@@ -66,7 +66,7 @@ int run(string s, int k, char letter) {
         if (s[start] == letter) restSwaps = min(k, restSwaps + 1);
         best = max(best, end - start);
     }
-    
+
     return best;
 }
 
