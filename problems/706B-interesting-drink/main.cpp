@@ -42,7 +42,15 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 // ---------------------------------------------------------------------------
 
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n; cin >> n;
+    vector<int> x(n); rep(i, 0, n) cin >> x[i];
+    sort(all(x));
+ 
+    int q; cin >> q;
+    rep(i, 0, q) {
+        int m; cin >> m;
+        cout << upper_bound(all(x), m) - x.begin() << "\n";
+    }
 }
 
 int main() {
