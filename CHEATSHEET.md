@@ -246,6 +246,112 @@ the window is short *and wrong* — recording it would print a too-small answer.
 
 ---
 
+## Binary search **on the answer** — searching a value space, not an array
+
+**Use when:** you're asked for the largest (or smallest) value `h` satisfying some
+condition, checking one candidate `h` is easy, and the condition is **monotone in `h`** —
+once it flips it never flips back. Then the answer space `[lo, hi]` looks like
+`TTTTTFFFFF` (or `FFFFFTTTTT`) and you binary-search the boundary in O(log range)
+checks instead of scanning every candidate.
+
+**The array is irrelevant.** This is the part that trips people coming from `lower_bound`
+problems: you are not searching *the input*, so the input does **not** need to be sorted.
+Sorting it is wasted work and a false signal about the technique. (A sort may still be
+needed *inside* the feasibility check — but that's a different reason.)
+
+### Three obligations, in order
+
+1. **Name the predicate.** Write it as a function whose name states what `true` means —
+   `feasible(h)`, `enoughTime(h)`, `tooExpensive(h)`. A `bool check(...)` whose polarity
+   you have to open the body to learn is how off-by-ones get in.
+2. **Prove monotonicity.** "As `h` grows, the cost `Σ max(0, h - a_i)` is non-decreasing"
+   is the whole justification for the search. No monotonicity ⇒ no binary search.
+3. **Prove the bounds.** `lo` must be feasible and `hi` infeasible (or vice-versa) —
+   by an argument, not a hunch. `hi = maxA + x + 1` because *the tallest wall alone*
+   would need `x + 1` units beats `hi = 2e18` because *it's probably big enough*.
+
+### The two templates — and why the midpoint rounding differs
+
+**Last true** (maximize a feasible value) — `lo` and `hi` are both live candidates:
+
+```cpp
+ll lo = 1, hi = maxAnswer;                 // lo feasible, hi is the largest conceivable
+while (lo < hi) {
+    ll mid = lo + (hi - lo + 1) / 2;       // round UP — see below
+    if (feasible(mid)) lo = mid;           // mid works: keep it, look higher
+    else               hi = mid - 1;       // mid fails: discard it
+}
+cout << lo << "\n";                        // answer, no correction needed
+```
+
+**First false** (find the boundary, then step back) — `hi` sits one past the last valid:
+
+```cpp
+ll lo = 1, hi = maxAnswer + 1;             // hi is a proved-infeasible sentinel
+while (lo < hi) {
+    ll mid = lo + (hi - lo) / 2;           // round DOWN
+    if (!feasible(mid)) hi = mid;
+    else                lo = mid + 1;
+}
+cout << hi - 1 << "\n";                    // the -1 is mandatory here
+```
+
+**The `+1` is not decoration.** In the first template, when `hi == lo + 1` a rounding-down
+midpoint gives `mid == lo`; if `feasible(mid)` then `lo = mid` changes nothing and the loop
+spins forever. Rounding up guarantees `mid > lo`, so every iteration shrinks the range.
+The second template assigns `hi = mid` (not `lo = mid`), so rounding *down* is what
+guarantees progress there. **Rule: whichever endpoint you assign `mid` to unchanged is the
+side the rounding must move away from.** Pick one template and keep its pairing; don't
+re-derive it under time pressure.
+
+### ⚠️ Caveats
+
+- **Overflow lives in the bounds, not the loop.** `lo + (hi - lo) / 2` is the anti-overflow
+  midpoint (`(lo + hi) / 2` can wrap), but it doesn't help if `hi` itself was computed in
+  `int` from `maxA + x + 1`. Declaring `ll mid = <int expression>` is theatre — the
+  arithmetic already finished in `int` before the widening. Widen the *endpoints*.
+- **Early-exit the check.** `if (cost > x) return false;` inside the accumulation loop both
+  removes any overflow question from the running total and cuts work on hopeless candidates.
+- **Answer range ≠ input range.** Here `a_i ≤ 10⁹` and `x ≤ 10⁹`, but the answer reaches
+  `2·10⁹` — outside `int` in spirit even though it squeaks in by 7%.
+
+- Seen in: **1873E Building an Aquarium** — largest water level `h` with
+  `Σ max(0, h - a_i) ≤ x`. Contrast **706B**, where `upper_bound` searched *the sorted
+  input*; here the input order never matters.
+
+### The other kind: STL boundary search on an already-sorted array
+
+When the array itself is sorted (or is a prefix-sum array, which is sorted for free when
+the values are positive), the loop is already written for you — the only decision left is
+**which** of the two functions to call. Both return an iterator; both are the `while (lo < hi)`
+template underneath.
+
+| Call | Returns the first element that is… | Ask for it when the question is… |
+|---|---|---|
+| `lower_bound(all(v), q)` | `≥ q` | **locate** — "which cell/pile/bucket contains `q`?" |
+| `upper_bound(all(v), q)` | `> q` (strictly) | **count** — "how many are `≤ q`?" (the index *is* the count) |
+
+**The rule behind the table:** counting wants the first element **past** the target
+(everything before it is `≤ q`); locating wants the first element that **reaches** the
+target (that's the cell `q` falls inside). Getting it backwards is not a rare edge case —
+it is wrong on **every** query that lands exactly on a boundary value, which is precisely
+the case a hand-written sample is most likely to contain.
+
+```cpp
+// prefix[i] = a[0] + … + a[i], strictly increasing when every a[i] > 0
+// item q (1-indexed) lives in the first bucket whose cumulative end reaches q:
+int bucket = lower_bound(all(prefix), q) - prefix.begin() + 1;   // +1 → 1-indexed
+```
+
+- Seen in: **474B Worms** (`lower_bound` — locate a labelled item in a pile) and
+  **706B Interesting drink** (`upper_bound` — count prices within budget). Same trap,
+  opposite answers.
+- Bonus: the prefix-sum form stays correct even with **empty** buckets (`a_i = 0`).
+  Duplicated prefix values make `lower_bound` return the *earliest* matching index — which
+  is exactly the non-empty bucket that ends there, not the empty one after it.
+
+---
+
 ## What "greedy" actually means — and how to tell it from lookalikes
 
 **Definition:** a greedy algorithm builds a solution incrementally, and at each step

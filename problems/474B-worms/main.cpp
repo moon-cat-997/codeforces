@@ -41,8 +41,23 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 #endif
 // ---------------------------------------------------------------------------
 
+
+
 void solve() {
-    // Read input from cin, write the answer to cout.
+    int n; cin >> n;
+    int s = 0;
+    vec<int> a(n);
+    rep(i, 0, n) {
+        int t; cin >> t;
+        s += t;
+        a[i] = s;
+    }
+    int m; cin >> m;
+    rep(i, 0, m) {
+        int q; cin >> q;
+        int res = lower_bound(all(a), q) - a.begin() + 1;
+        cout << res << "\n";
+    }
 }
 
 int main() {
