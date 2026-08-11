@@ -41,49 +41,34 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 #endif
 // ---------------------------------------------------------------------------
 
-bool check(ll h, vec<ll>& a, ll x) {
+bool check(int h, vec<int>& a, int x) {
     ll s = 0;
     rep(i, 0, sz(a)) {
-        s += max(0ll, h - a[i]);
+        s += max(0, h - a[i]);
     }
     return s > x;
 }
 
 
-bool checkFinal(ll h, vec<ll>& a, ll x) {
-    ll s = 0;
-    rep(i, 0, sz(a)) {
-        s += max(0ll, h - a[i]);
-    }
-    return s <= x;
-}
-
-
 void solve() {
-    ll n; cin >> n;
-    ll x; cin >> x;
-    vec<ll> a(n); 
+    int n; cin >> n;
+    int x; cin >> x;
+    vec<int> a(n); 
     rep(i, 0, n) cin >> a[i];
     sort(all(a));
-    ll lo = 1;
-    ll hi = 2000000000ll;
+    int lo = 1;
+    int hi = a[sz(a) - 1] + x + 1;
 
-    while(hi - lo > 2) {
-        ll mid = lo + (hi - lo + 1) / 2;
+    while(lo < hi) {
+        ll mid = lo + (hi - lo) / 2;
         if (check(mid, a, x)) {
-            hi = mid - 1;
+            hi = mid;
         } else {
-            lo = mid;
+            lo = mid + 1;
         }
     }
 
-    while (lo <= hi) {
-        if (checkFinal(hi, a, x)) {
-            cout << hi << "\n";
-            break;
-        }
-        hi--;
-    }
+    cout << hi - 1 << "\n";
 }
 
 int main() {
