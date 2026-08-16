@@ -41,8 +41,34 @@ template <class T, class... R> void _dbg(const T& x, const R&... r) {
 #endif
 // ---------------------------------------------------------------------------
 
+bool check(ll k, ll h, vec<int>& a) {
+    ll curDamage = k;
+    rep(i, 1, sz(a)) {
+        if (a[i - 1] + k > a[i]) {
+            curDamage -= (a[i - 1] + k - a[i]);
+        }
+        curDamage += k;
+    }
+    return curDamage >= h;
+}
+
 void solve() {
-    // Read input from cin, write the answer to cout.
+    ll n; ll h;
+    cin >> n >> h;
+    vec<int> a(n);
+    rep(i, 0, n) cin >> a[i];
+
+    ll lo = 0; 
+    ll hi = h + 1;
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (check(mid, h, a)) {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }; 
+    }
+    cout << lo << "\n";
 }
 
 int main() {
@@ -50,7 +76,7 @@ int main() {
     cin.tie(nullptr);
 
     int t = 1;
-    // cin >> t;   // <-- uncomment for "t test cases" problems
+    cin >> t;   // <-- uncomment for "t test cases" problems
     while (t--) solve();
     return 0;
 }
