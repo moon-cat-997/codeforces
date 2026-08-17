@@ -310,6 +310,18 @@ re-derive it under time pressure.
   midpoint (`(lo + hi) / 2` can wrap), but it doesn't help if `hi` itself was computed in
   `int` from `maxA + x + 1`. Declaring `ll mid = <int expression>` is theatre — the
   arithmetic already finished in `int` before the widening. Widen the *endpoints*.
+- **The inverse fault: `int mid` between `ll` endpoints — and it TLEs, not WAs** (1613C).
+  Once the range passes `INT_MAX`, the midpoint truncates to a value that can land
+  *outside* `[lo, hi)`; then `lo = mid + 1` / `hi = mid` stop shrinking the interval and
+  the loop never terminates. So the failure *presents* as a time limit despite trivial
+  work — which is also the diagnostic: **count the operations first** (multiply the
+  nesting levels: check cost × ~log₂(range) iterations × test count, against ~10⁸/s).
+  A binary search whose count comes out at 10⁵–10⁶ cannot be slow; a TLE there means
+  non-termination, so inspect the loop variables' *types*, not the algorithm.
+  Rule: `lo`, `hi`, and `mid` share **one** type, sized from the proven answer range.
+  And remember signed overflow is **undefined behavior**, not wraparound — under `-O2`
+  the compiler may assume it never happens, so post-overflow behavior isn't merely
+  "a garbage number", it's unreasoned-about code.
 - **Early-exit the check.** `if (cost > x) return false;` inside the accumulation loop both
   removes any overflow question from the running total and cuts work on hopeless candidates.
 - **Answer range ≠ input range.** Here `a_i ≤ 10⁹` and `x ≤ 10⁹`, but the answer reaches
