@@ -364,6 +364,96 @@ int bucket = lower_bound(all(prefix), q) - prefix.begin() + 1;   // +1 → 1-ind
 
 ---
 
+## Counting values inside a range `[l, r]` — one primitive, two calls
+
+Counting *how many* elements (or pairs, or sums) land inside an inclusive band is **not**
+a band-shaped search. Trying to search for "is this inside `[l, r]`?" directly is the
+single most common way to get this wrong, and it fails for a structural reason:
+
+```
+predicate  l ≤ x ≤ r   on a sorted array:   F F F T T T F F F
+                                             ^^^^^^^^^^^^^^^  NOT monotone
+```
+
+Binary search needs a **monotone** predicate — one that switches sides exactly once —
+because a `false` result has to tell you *which half to discard*. With a band, `false`
+means "either too far left **or** too far right", which discards nothing. No amount of
+fiddling with `lo`/`hi` rescues this; the predicate itself has to change.
+
+### The reduction: subtract two one-sided searches
+
+Split the band into two **one-sided** questions, each monotone, and subtract:
+
+```
+count of x in [l, r]  =  (first index with x > r)  −  (first index with x ≥ l)
+                      =   upper_bound(r)           −   lower_bound(l)
+```
+
+Both terms are "first index where the predicate turns true", so both use the *same*
+template. This is exactly what `upper_bound`/`lower_bound` are, and why the STL ships
+them as a pair.
+
+### Collapsing to a single hand-rolled primitive
+
+When rolling it yourself, don't write two mirror-image templates — write **one**, `firstTrue`,
+and vary only the predicate. For **integers**, `x > r` and `x ≥ r + 1` are the same
+statement, so both calls become the same `≥` search:
+
+```cpp
+// first index in (start, n) whose sum reaches `target`; returns n if none does
+int firstAtLeast(const vec<int>& a, int start, ll target) {
+    int lo = start + 1, hi = sz(a);          // HALF-OPEN: hi = n, not n-1
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if ((ll)a[start] + a[mid] >= target) hi = mid;   // pred true → answer is at or left of mid
+        else                                 lo = mid + 1;
+    }
+    return lo;
+}
+
+ans += firstAtLeast(a, i, r + 1) - firstAtLeast(a, i, l);   // count, no special cases
+```
+
+### Why `hi = n` (half-open) and not `hi = n - 1`
+
+With a **closed** interval the search can only ever return an index inside the array, so
+there is **no value that means "no such element"** — and none that means "all of them
+qualify". You are then forced to bolt on `if (empty) …` special cases around a search that
+structurally cannot express the empty answer, and those patches are where the wrong
+answers live. Half-open lets the search legitimately return `n`, and the subtraction then
+yields `0` for an empty window with no branch at all.
+
+**Rule:** hand-rolled boundary searches use `[lo, hi)` — `hi` starts one past the end, the
+return value is a *position between elements*, and counts are differences of positions.
+
+### ⚠️ Caveats
+
+- **The counter is `ll`, always.** "Count the pairs" tops out at `n(n−1)/2`, which passes
+  `INT_MAX` at only `n ≈ 65 000`. At `n = 2·10⁵` the answer reaches ~2·10¹⁰ — 10× over.
+  Samples never expose this; the judge always does.
+- **The band is inclusive on both ends**, so `r` needs the `+1` and `l` does not. Getting
+  this wrong undercounts by exactly the pairs whose sum equals `r` — which shows up as
+  "every answer is a little too small", never as a crash.
+- **Only pair `l` with the left edge and `r` with the right edge.** Naming a helper
+  `lowerSearch` and then passing it `r` makes every later reading of the code fight you.
+- **`i < j` vs. double counting** — either search only the suffix `(i, n)` so each pair is
+  found once, or search the whole array, subtract the self-match, and halve at the end.
+  Pick one; mixing them is an off-by-a-factor-of-2.
+- Seen in: **1538C Number of Pairs** (count pairs with `l ≤ a_i + a_j ≤ r`).
+
+### A debugging note that generalizes: an infinite loop can *vanish*
+
+While solving 1538C, a first draft had a `while (lo < hi)` body that assigned only to
+`mid` and never moved `lo`/`hi`. At `-O0` it hung, as expected. At **`-O2` it printed
+wrong numbers instead** — because an infinite loop with no observable side effects is
+**undefined behaviour** in C++, and GCC is permitted to delete it outright.
+
+So "it produced output" is *not* evidence that a loop terminates. When a hand-rolled
+binary search misbehaves under `-O2`, check first that every path through the body
+**shrinks the interval** — then re-check at `-O0`, where the bug is loud.
+
+---
+
 ## What "greedy" actually means — and how to tell it from lookalikes
 
 **Definition:** a greedy algorithm builds a solution incrementally, and at each step
